@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -43,6 +44,14 @@ class Product extends Model
 
     public function prices(){
         return $this->hasMany(Prices::class,'product_sku','sku');
+    }
+
+    public function current_price()
+    {
+        $today = Carbon::today();
+        return $this->hasOne(Prices::class,'product_sku','sku')
+                    ->where('starting_date', '<=', $today)
+                    ->where('ending_date', '>=', $today);
     }
 
     public function metas(){
