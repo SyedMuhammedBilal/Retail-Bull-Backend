@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\v1\BaseController as BaseController;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PricesResource;
 use App\Models\Prices;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PriceController extends BaseController
 {
@@ -42,6 +44,24 @@ class PriceController extends BaseController
     public function store(Request $request)
     {
         //
+        $validator = Validator::make($request->all(), [
+            'product_sku' => 'required',
+            'price_level_code' => 'required|in:B2B,B2C',
+            'price' => 'required',
+            'starting_date' => 'required',
+            'ending_date' => 'required'
+        ]);
+
+        if ($validator->fails())
+        {
+            $errors = $validator->errors()->all();
+            return $this->sendError($errors);
+        }
+    
+        $price = Prices::create($request->all());
+
+        return $this->sendResponse($price,"Price Created Successfully");
+        
     }
 
     /**
@@ -52,6 +72,9 @@ class PriceController extends BaseController
      */
     public function show($id)
     {
+        $today = Carbon::today()->toDateString();
+        $prices = Prices::where(['product_sku' => $id , 'starting_date' => $today])->get();
+        return $this->sendResponse($prices , 'Prices retrieved for today');
         //
     }
 
